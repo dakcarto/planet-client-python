@@ -143,7 +143,7 @@ class ClientV1(_Base):
             self._url('data/v1/searches/'), self.auth,
             body_type=models.JSON, data=body, method='POST')).get_body()
 
-    def quick_search(self, request, **kw):
+    def quick_search(self, request, callback=None, **kw):
         '''Execute a quick search with the specified request.
 
         :param request: see :ref:`api-search-request`
@@ -159,9 +159,14 @@ class ClientV1(_Base):
         '''
         body = json.dumps(request)
         params = self._params(kw)
-        return self.dispatcher.response(models.Request(
+        response = self.dispatcher.response(models.Request(
             self._url('data/v1/quick-search'), self.auth, params=params,
-            body_type=models.Items, data=body, method='POST')).get_body()
+            body_type=models.Items, data=body, method='POST'))
+        if callback:
+            response.get_body_async(callback)
+            return response
+        else:
+            return response.get_body()
 
     def saved_search(self, sid, **kw):
         '''Execute a saved search by search id.
